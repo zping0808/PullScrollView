@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -39,6 +40,12 @@ public class MainActivity extends AppCompatActivity {
             public void scrollState(float scrollScale) {
                 titleBgDrawable.setAlpha((int) (scrollScale * 255));
                 iv_title.setBackground(titleBgDrawable);
+                Log.i("TTT", "scrollState:" + scrollScale);
+            }
+
+            @Override
+            public void changedState(boolean isOpen) {
+                Log.i("TTT", "changedState:" + isOpen);
             }
 
 
@@ -60,9 +67,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     public void closeTwoView(View view) {
         pullScrollView.closeTwoView();
     }
+
     @Override
     public void onBackPressed() {
         if (pullScrollView.isTwoViewOpen()) {
