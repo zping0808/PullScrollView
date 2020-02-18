@@ -41,6 +41,7 @@ public class PullScrollView extends ScrollView {
     //上滑计算比例值监听器
     private ScrollStateListener mScrollStateListener;
     private View headView;
+    private boolean isHeadShow = true;
 
     public PullScrollView(Context context) {
         this(context, null);
@@ -75,6 +76,7 @@ public class PullScrollView extends ScrollView {
         setTwoViewTopMargin(-mScreenHeight);
 
     }
+
     public void setScrollStateListener(ScrollStateListener scrollStateListener) {
         mScrollStateListener = scrollStateListener;
     }
@@ -82,18 +84,21 @@ public class PullScrollView extends ScrollView {
     public void setScrollTwoViewListener(ScrollTwoViewListener mScrollTwoViewListener) {
         this.mScrollTwoViewListener = mScrollTwoViewListener;
     }
+
     //打开二楼View
     public void openTwoView() {
         if (twoView != null) {
             twoViewChangeAnim(false);
         }
     }
+
     //关闭二楼View
     public void closeTwoView() {
         if (twoView != null) {
             twoViewChangeAnim(true);
         }
     }
+
     //二楼View是否打开
     public boolean isTwoViewOpen() {
         return isTwoViewOpen;
@@ -165,7 +170,7 @@ public class PullScrollView extends ScrollView {
     public boolean onTouchEvent(MotionEvent ev) {
         if (twoView != null) {
             int action = ev.getAction();
-            float MOVE_Y ;
+            float MOVE_Y;
             switch (action) {
                 case MotionEvent.ACTION_DOWN:
                     if (getScaleY() == 0) {
@@ -218,22 +223,31 @@ public class PullScrollView extends ScrollView {
         return super.onTouchEvent(ev);
     }
 
+
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         if (headView != null) {
             int headView_height = headView.getMeasuredHeight();
+            float scale;
             if (t <= 0) {
-                if (mScrollStateListener != null) {
-                    mScrollStateListener.scrollState(0.0f);
-                }
+                scale = 0.0f;
             } else if (t <= headView_height) {
-                float scale = (float) t / headView_height;
-                if (mScrollStateListener != null) {
-                    mScrollStateListener.scrollState(scale);
-                }
+                scale = (float) t / headView_height;
             } else {
-                if (mScrollStateListener != null) {
-                    mScrollStateListener.scrollState(1.0f);
+                scale = 1.0f;
+            }
+            if (mScrollStateListener != null) {
+                mScrollStateListener.scrollState(scale);
+                if (scale > 0.5) {
+                    if (isHeadShow) {
+                        mScrollStateListener.changedState(false);
+                    }
+                    isHeadShow = false;
+                } else {
+                    if (!isHeadShow) {
+                        mScrollStateListener.changedState(true);
+                    }
+                    isHeadShow = true;
                 }
             }
         }
@@ -251,7 +265,7 @@ public class PullScrollView extends ScrollView {
     }
 
     //类型估值器
-    public  Integer evaluate(float fraction, Integer startValue, Integer endValue) {
+    public Integer evaluate(float fraction, Integer startValue, Integer endValue) {
         int startInt = startValue;
         return (int) (startInt + fraction * (endValue - startInt));
     }
@@ -260,6 +274,9 @@ public class PullScrollView extends ScrollView {
     public interface ScrollStateListener {
         //滑动过程中比例值改变 scrollScale 0-1
         void scrollState(float scrollScale);
+
+        //滑动过程中  比例值大于0.5 isOpen=false 小于等于0.5  isOpen=true
+        void changedState(boolean isOpen);
     }
 
     //解决下拉过程中禁用二楼所有点击事件
@@ -267,6 +284,7 @@ public class PullScrollView extends ScrollView {
         public NoTouchView(Context context) {
             super(context);
         }
+
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             return true;
@@ -277,8 +295,10 @@ public class PullScrollView extends ScrollView {
     public interface ScrollTwoViewListener {
         //是否已显示出二楼view 未开始下拉 isShow=false  下拉中isShow=true 完全打开二楼View isShow=true
         void showTwoView(boolean isShow);
+
         //已打开二楼View
         void openTwoView();
+
         //已关闭二楼View
         void closeTwoView();
     }
